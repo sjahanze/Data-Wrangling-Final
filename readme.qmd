@@ -1,0 +1,136 @@
+---
+title: "Data Wrangling Final Project"
+format: gfm
+---
+
+```{python}
+import pandas as pd 
+import seaborn as sns
+import matplotlib.pyplot as plt
+```
+
+```{python}
+instagram_data = pd.read_csv("C:/Users/USER/Downloads/Instagram_Analytics.csv")
+instagram_data.head()
+```
+
+```{python}
+category_mean = instagram_data.groupby("content_category")['engagement_rate'].mean()
+instagram_data_merged = instagram_data.merge(category_mean, on="content_category", how="inner")
+```
+
+This code calculates the average engagement rate for each content category and then merges that information back into the main dataset.
+First, the data is grouped by content_category and the mean engagement rate is computed.
+Then the result is converted into a proper DataFrame and the column is renamed for clarity.
+Finally, the mean engagement rate for each category is merged back into the original dataset so every post now has access to:
+
+- its own engagement rate
+
+- the average engagement rate of its category
+
+This allows for deeper analysis, such as comparing individual post performance relative to the typical performance of its category.
+
+Q. Which Content Categories Generate the Highest Engagement?
+```{python}
+plt.figure(figsize=(10,6))
+sns.barplot(
+    data=instagram_data_merged,
+    x="content_category",
+    y="engagement_rate_y"
+)
+
+plt.xlabel("Content Category")
+plt.ylabel("Mean Engagement Rate")
+plt.title("Average Engagement Rate by Content Category")
+
+plt.show()
+
+```
+
+This bar chart shows the average engagement rate for each content category in the dataset. Beauty, Lifestyle, and Photography content stand out as the highest-performing categories, reaching engagement rates above 14–15%. In contrast, Fitness, Travel, and Food posts show noticeably lower engagement averages.
+
+This pattern suggests that content theme plays a major role in driving engagement. Visually appealing or lifestyle-oriented topics generate stronger audience interaction, while other categories attract less engagement on average.
+
+
+```{python}
+media_followers = instagram_data_merged.groupby('media_type')[['followers_gained']].mean().reset_index()
+instagram_data_merged1 = instagram_data_merged.merge(media_followers, on="media_type", how="inner")
+```
+
+This code calculates the average number of followers gained for each media type (Reel, Photo, Video, Carousel) and merges that information back into the main dataset.
+
+First, the data is grouped by media_type, and the mean followers_gained is computed and reset into a clean DataFrame.
+Next, this aggregated information is merged into the original dataset so each post now includes:
+
+- its own number of followers gained
+
+- the average followers gained for its media type
+
+This allows for easy comparison between individual posts and the typical performance of their respective media format.
+
+Q. Do different media types attract different amounts of followers?
+```{python}
+sns.barplot(data = instagram_data_merged1, x = 'media_type', y ='followers_gained_y')
+
+plt.xlabel("Media Type")
+plt.ylabel("Followers Gained")
+plt.title("Followers Gained by Media Type")
+```
+This bar chart compares the average number of followers gained across different media types: Reels, Photos, Videos, and Carousels. The heights of the bars are nearly identical, showing that all formats generate a very similar level of follower growth.
+
+Media type does not have a meaningful impact on how many followers a post gains. This suggests that follower growth in this dataset depends more on content quality, topic, and distribution, rather than whether the post is a Reel, Photo, Video, or Carousel.
+
+```{python}
+
+instagram_data_merged['upload_date'] = pd.to_datetime(instagram_data_merged['upload_date'])
+instagram_data_merged['upload_day'] = instagram_data_merged['upload_date'].dt.day_name()
+
+instagram_data_merged
+
+```
+
+This code converts the upload_date column into a proper datetime format and extracts the day of the week for each post. Converting the date ensures that pandas recognizes it as a valid datetime object, which allows us to safely apply .dt functions. The new column, upload_day, contains the weekday name (e.g., Monday, Tuesday), making it easy to analyze engagement patterns across different days of the week.
+
+This step is essential for answering the question “Does the day of the week influence engagement?”, and enables visualizations and group-by summaries based on posting day.
+
+```{python}
+day_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+instagram_data_merged['upload_day'] = pd.Categorical(
+    instagram_data_merged['upload_day'],
+    categories=day_order,
+    ordered=True
+)
+```
+
+This code defines the correct order of the days of the week and converts the upload_day column into an ordered categorical variable. By specifying the order from Monday to Sunday, we ensure that plots and group-by summaries follow a logical, chronological sequence rather than sorting alphabetically.
+
+Q. Does the day of the week influence engagement rate?
+```{python}
+sns.lineplot(data = instagram_data_merged, x = 'upload_day', y = 'engagement_rate_x')
+plt.xlabel('Upload Day')
+plt.ylabel("Mean Engagement Rate")
+plt.title("Mean Engagement Rate per Day")
+```
+
+This line chart displays the average engagement rate for each day of the week. The engagement pattern is not uniform—there is a clear midweek spike. Wednesday shows the highest engagement, while Tuesday has one of the lowest values. Engagement begins to rise again toward the weekend, peaking moderately on Saturday before declining slightly on Sunday.
+
+The confidence band around the line represents variability within each day, showing how consistent or inconsistent engagement is on different days. Overall, this visualization suggests that posting midweek leads to stronger engagement, making Wednesday the most effective day for audience interaction.
+
+Q. What factors have the strongest influence on engagement?
+```{python}
+model1 = smf.ols(
+    formula='engagement_rate_x ~ caption_length + hashtags_count + reach + impressions + shares + saves',
+    data=instagram_data_merged
+).fit()
+
+print(model1.summary())
+```
+
+This regression model examines how different post-level features influence engagement rate. Overall, the model explains about 14% of the variation in engagement, which is reasonable given the unpredictable nature of social media interactions.
+
+Among the predictors, reach is by far the strongest positive driver of engagement. Posts that reach more unique users show significantly higher engagement rates. In contrast, impressions have a strong negative effect, indicating that repeated views by the same users do not translate into higher engagement.
+
+The effects of saves and caption length are very small and only borderline significant, suggesting they have limited practical impact. Meanwhile, shares and hashtags_count do not significantly predict engagement in this dataset once reach and impressions are accounted for.
+
+These results highlight that audience distribution (reach) is more important than content mechanics (hashtags, caption length, or shares) when it comes to driving engagement on Instagram.
