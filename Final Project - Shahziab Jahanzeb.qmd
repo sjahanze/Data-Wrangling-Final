@@ -5,7 +5,8 @@ execute:
   echo: true
   warning: false
   message: false
-  eval: true 
+  eval: true
+  freeze: auto
 ---
 
 ```{python}
