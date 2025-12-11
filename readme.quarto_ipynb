@@ -1,0 +1,266 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "---\n",
+        "title: \"Data Wrangling Final Project\"\n",
+        "format: gfm\n",
+        "---"
+      ],
+      "id": "957df175"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import pandas as pd \n",
+        "import seaborn as sns\n",
+        "import matplotlib.pyplot as plt"
+      ],
+      "id": "8c7cfc11",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "instagram_data = pd.read_csv(\"C:/Users/USER/Downloads/Instagram_Analytics.csv\")\n",
+        "instagram_data.head()"
+      ],
+      "id": "bad8e5e8",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "category_mean = instagram_data.groupby(\"content_category\")['engagement_rate'].mean()\n",
+        "instagram_data_merged = instagram_data.merge(category_mean, on=\"content_category\", how=\"inner\")"
+      ],
+      "id": "277a04a4",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "This code calculates the average engagement rate for each content category and then merges that information back into the main dataset.\n",
+        "First, the data is grouped by content_category and the mean engagement rate is computed.\n",
+        "Then the result is converted into a proper DataFrame and the column is renamed for clarity.\n",
+        "Finally, the mean engagement rate for each category is merged back into the original dataset so every post now has access to:\n",
+        "\n",
+        "- its own engagement rate\n",
+        "\n",
+        "- the average engagement rate of its category\n",
+        "\n",
+        "This allows for deeper analysis, such as comparing individual post performance relative to the typical performance of its category.\n",
+        "\n",
+        "Q. Which Content Categories Generate the Highest Engagement?"
+      ],
+      "id": "1d6160c8"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "plt.figure(figsize=(10,6))\n",
+        "sns.barplot(\n",
+        "    data=instagram_data_merged,\n",
+        "    x=\"content_category\",\n",
+        "    y=\"engagement_rate_y\"\n",
+        ")\n",
+        "\n",
+        "plt.xlabel(\"Content Category\")\n",
+        "plt.ylabel(\"Mean Engagement Rate\")\n",
+        "plt.title(\"Average Engagement Rate by Content Category\")\n",
+        "\n",
+        "plt.show()"
+      ],
+      "id": "68c673ef",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "This bar chart shows the average engagement rate for each content category in the dataset. Beauty, Lifestyle, and Photography content stand out as the highest-performing categories, reaching engagement rates above 14–15%. In contrast, Fitness, Travel, and Food posts show noticeably lower engagement averages.\n",
+        "\n",
+        "This pattern suggests that content theme plays a major role in driving engagement. Visually appealing or lifestyle-oriented topics generate stronger audience interaction, while other categories attract less engagement on average.\n"
+      ],
+      "id": "b4a45aae"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "media_followers = instagram_data_merged.groupby('media_type')[['followers_gained']].mean().reset_index()\n",
+        "instagram_data_merged1 = instagram_data_merged.merge(media_followers, on=\"media_type\", how=\"inner\")"
+      ],
+      "id": "5220ec12",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "This code calculates the average number of followers gained for each media type (Reel, Photo, Video, Carousel) and merges that information back into the main dataset.\n",
+        "\n",
+        "First, the data is grouped by media_type, and the mean followers_gained is computed and reset into a clean DataFrame.\n",
+        "Next, this aggregated information is merged into the original dataset so each post now includes:\n",
+        "\n",
+        "- its own number of followers gained\n",
+        "\n",
+        "- the average followers gained for its media type\n",
+        "\n",
+        "This allows for easy comparison between individual posts and the typical performance of their respective media format.\n",
+        "\n",
+        "Q. Do different media types attract different amounts of followers?"
+      ],
+      "id": "0fa96a7f"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "sns.barplot(data = instagram_data_merged1, x = 'media_type', y ='followers_gained_y')\n",
+        "\n",
+        "plt.xlabel(\"Media Type\")\n",
+        "plt.ylabel(\"Followers Gained\")\n",
+        "plt.title(\"Followers Gained by Media Type\")"
+      ],
+      "id": "f6b8c77b",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "This bar chart compares the average number of followers gained across different media types: Reels, Photos, Videos, and Carousels. The heights of the bars are nearly identical, showing that all formats generate a very similar level of follower growth.\n",
+        "\n",
+        "Media type does not have a meaningful impact on how many followers a post gains. This suggests that follower growth in this dataset depends more on content quality, topic, and distribution, rather than whether the post is a Reel, Photo, Video, or Carousel."
+      ],
+      "id": "004e93ca"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "instagram_data_merged['upload_date'] = pd.to_datetime(instagram_data_merged['upload_date'])\n",
+        "instagram_data_merged['upload_day'] = instagram_data_merged['upload_date'].dt.day_name()\n",
+        "\n",
+        "instagram_data_merged"
+      ],
+      "id": "774bd898",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "This code converts the upload_date column into a proper datetime format and extracts the day of the week for each post. Converting the date ensures that pandas recognizes it as a valid datetime object, which allows us to safely apply .dt functions. The new column, upload_day, contains the weekday name (e.g., Monday, Tuesday), making it easy to analyze engagement patterns across different days of the week.\n",
+        "\n",
+        "This step is essential for answering the question “Does the day of the week influence engagement?”, and enables visualizations and group-by summaries based on posting day."
+      ],
+      "id": "4a2f25d2"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "day_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']\n",
+        "\n",
+        "instagram_data_merged['upload_day'] = pd.Categorical(\n",
+        "    instagram_data_merged['upload_day'],\n",
+        "    categories=day_order,\n",
+        "    ordered=True\n",
+        ")"
+      ],
+      "id": "74047e74",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "This code defines the correct order of the days of the week and converts the upload_day column into an ordered categorical variable. By specifying the order from Monday to Sunday, we ensure that plots and group-by summaries follow a logical, chronological sequence rather than sorting alphabetically.\n",
+        "\n",
+        "Q. Does the day of the week influence engagement rate?"
+      ],
+      "id": "c0850a17"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "sns.lineplot(data = instagram_data_merged, x = 'upload_day', y = 'engagement_rate_x')\n",
+        "plt.xlabel('Upload Day')\n",
+        "plt.ylabel(\"Mean Engagement Rate\")\n",
+        "plt.title(\"Mean Engagement Rate per Day\")"
+      ],
+      "id": "12253139",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "This line chart displays the average engagement rate for each day of the week. The engagement pattern is not uniform—there is a clear midweek spike. Wednesday shows the highest engagement, while Tuesday has one of the lowest values. Engagement begins to rise again toward the weekend, peaking moderately on Saturday before declining slightly on Sunday.\n",
+        "\n",
+        "The confidence band around the line represents variability within each day, showing how consistent or inconsistent engagement is on different days. Overall, this visualization suggests that posting midweek leads to stronger engagement, making Wednesday the most effective day for audience interaction.\n",
+        "\n",
+        "Q. What factors have the strongest influence on engagement?"
+      ],
+      "id": "0e270ab6"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "model1 = smf.ols(\n",
+        "    formula='engagement_rate_x ~ caption_length + hashtags_count + reach + impressions + shares + saves',\n",
+        "    data=instagram_data_merged\n",
+        ").fit()\n",
+        "\n",
+        "print(model1.summary())"
+      ],
+      "id": "43708e92",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "This regression model examines how different post-level features influence engagement rate. Overall, the model explains about 14% of the variation in engagement, which is reasonable given the unpredictable nature of social media interactions.\n",
+        "\n",
+        "Among the predictors, reach is by far the strongest positive driver of engagement. Posts that reach more unique users show significantly higher engagement rates. In contrast, impressions have a strong negative effect, indicating that repeated views by the same users do not translate into higher engagement.\n",
+        "\n",
+        "The effects of saves and caption length are very small and only borderline significant, suggesting they have limited practical impact. Meanwhile, shares and hashtags_count do not significantly predict engagement in this dataset once reach and impressions are accounted for.\n",
+        "\n",
+        "These results highlight that audience distribution (reach) is more important than content mechanics (hashtags, caption length, or shares) when it comes to driving engagement on Instagram."
+      ],
+      "id": "7999d8de"
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "name": "python3",
+      "language": "python",
+      "display_name": "Python 3 (ipykernel)",
+      "path": "C:\\Users\\USER\\AppData\\Roaming\\Python\\share\\jupyter\\kernels\\python3"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 5
+}

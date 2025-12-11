@@ -1,6 +1,11 @@
 ---
 title: "Data Wrangling Final Project"
 format: gfm
+execute:
+  echo: true
+  warning: false
+  message: false
+  eval: true 
 ---
 
 ```{python}
