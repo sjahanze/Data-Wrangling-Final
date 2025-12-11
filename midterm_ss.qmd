@@ -1,0 +1,88 @@
+---
+title: "Midterm"
+author: "X and Z"
+format:
+  html:
+    toc: true
+    toc-location: left
+    self-contained: true
+jupyter: python3
+---
+
+You have complete control over the questions that you want to include in this task. There are only four rules:
+
+1. All of the available data needs to be joined into a single dataframe before any analysis is done.
+
+2. You need to ask 2 questions that can be answered using the combined data.
+
+3. You need to use at least 1 modeling technique to answer one of your questions and you need to produce at least one visualization to answer one of your questions.
+
+4. All code needs to be explained -- not what you did, but why you did it.
+```{python}
+import pandas as pd
+e_age = pd.read_csv("C:/Users/USER/Downloads/employee_age_tenure.csv")
+e_satisfaction = pd.read_csv("C:/Users/USER/Downloads/employee_satisfaction.csv")
+e_wunit = pd.read_csv("C:/Users/USER/Downloads/employee_work_unit.csv")
+m_ratings = pd.read_csv("C:/Users/USER/Downloads/manager_ratings.csv")
+```
+
+```{python}
+m_ratings = m_ratings.groupby(['manager_id'])['employee_rating'].mean().reset_index()
+```
+
+```{python}
+merge1 = pd.merge(e_age, e_satisfaction, how="left", left_on="employee_id", right_on='employee_id')
+merge2 = pd.merge(merge1, e_wunit, how= 'left', left_on= "employee_id", right_on= "employee_id")
+merge3 = pd.merge(merge2, m_ratings, how='left', left_on= "manager_x", right_on= 'manager_id')
+
+merge3.head(100)
+```
+
+
+```{python}
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+sns.scatterplot(data=merge3, x='employee_rating', y='overallSatisfaction')
+```
+
+
+```{python}
+sns.scatterplot(data=merge3, x='age', y='salary')
+
+```
+
+Which team in the business has the highest level of satisfaction?
+```{python}
+team_avg = merge3.groupby("team")["overallSatisfaction"].mean()
+
+plt.figure()
+plt.bar(team_avg.index, team_avg.values)
+
+```
+
+
+
+
+```{python}
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+import numpy as np
+```
+
+```{python}
+bootstrap_samples = 1000
+coef_values = []
+
+for i in range(bootstrap_samples):
+  sample = merge3.sample(frac=1, replace=True)
+  model = smf.ols('overallSatisfaction ~ age + tenure + salary + employee_rating', data=merge3)
+  result = model.fit()
+  coef_values.append(result.params['employee_rating'])
+
+```
+
+```{python}
+model = smf.ols('overallSatisfaction ~ age + tenure + employee_rating', data=merge3).fit()
+print(model.summary())
+```

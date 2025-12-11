@@ -1,0 +1,88 @@
+---
+title: "Homework #1"
+author: "Shahzaib Jahanzeb"
+format:
+  html:
+    toc: true
+    toc-location: left
+    theme: cerulean
+    highlight-style: breeze
+    self-contained: true
+---
+
+See all that stuff above. You should change `theme` and `highligh-style` to fit your own style. You can find them here: https://quarto.org/docs/output-formats/html-themes.html and https://quarto.org/docs/output-formats/html-code.html
+
+## Task 1: Data Import
+Use the code chunk below to import any necessary libraries/packages and your data.
+
+Pay attention to the format of the code chunk! You will create all of your code chunks in this format. CMD + SHIFT + I or CTRL + SHIFT + I will help you create code chunks quickly.
+
+```{python}
+import pandas as pd 
+import numpy as np
+```
+
+```{python}
+
+
+nba
+```
+
+## Task 2: Iteration
+Perform any iterative task on your data. It doesn't matter what you do, but articulate why you are choosing to do whatever it is that you are doing.
+```{python}
+def classify_energy(x):
+  if x < 40:
+      return "low"
+  elif x < 70:
+      return "medium"
+  else:
+      return "high"
+
+song_data['energy_level'] = song_data['energy'].apply(classify_energy)
+song_data.head(10)
+
+```
+
+For iteration, I created a new column called energy_level which contains each song’s energy score and labels it as low, medium, or high. This makes the data easier to understand because instead of just numbers, I can now compare songs based on simple energy categories.
+
+## Task 3: Subset
+
+Create any subset of your data and explain why you are creating that subset.
+```{python}
+song_data.columns
+song_data = song_data [['song', 'artist', 'duration', 'popularity', 'energy', 'danceability', 'happiness','acousticness', 'liveness', 'energy_level']]
+song_data
+```
+
+For subsetting, I have reduced the number of columns and selected only those which I can think will be useful ahead in my assignment. Removing columns that are not necessory makes the data more clean and easy to use for me. 
+
+## Task 4: Aggregate and Summarize
+
+Perform any aggregation and summarization of your data, and then explain why you are doing son.
+
+```{python}
+song_counts = song_data['artist'].value_counts()
+song_counts
+```
+
+I aggregated the data by counting how many songs each artist contributed. This gives insight into which artists dominate the dataset and helps decide whether some artists might bias the results. 
+
+## Task 5: Q and A
+
+You've got data and you've been exploring it. Now, pose and answer at least two questions about your data. You can use tables, visualizations, statistical models, or any other method you choose to answer your questions.
+
+Q. Does the energy level of a song have an effect on its popularity?
+```{python}
+song_data.groupby('energy_level')['popularity'].mean()
+```
+
+From this, we can see that songs with a high energy level have a higher average popularity than medium or low energy songs. This makes sense because energetic songs are often more exciting and are listened to more on streaming platforms today. This result also gives us an idea of what type of music people prefer. High-energy songs tend to be more popular, while low-energy songs are not played as much. We can also link this to musical genres. Genres that usually have high-energy tracks, such as pop, hip-hop, or electronic music, are likely to be more popular, while slower genres like soft rock or acoustic may receive less attention.
+
+Q2. Which artist has the highest average popularity?
+```{python}
+artist_popularity = song_data.groupby('artist')['popularity'].mean().sort_values(ascending=False)
+artist_popularity.head(50)
+```
+
+I grouped the data by artist and calculated the mean popularity for each one. This reveals which artists consistently produce highly popular songs. The results can be used to compare artist success or identify standout performers.
