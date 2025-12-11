@@ -124,7 +124,8 @@ The confidence band around the line represents variability within each day, show
 
 Q. What factors have the strongest influence on engagement?
 ```{python}
-model1 = smf.ols(
+import statsmodels.api as smf
+model1 = smf.formula.ols(
     formula='engagement_rate_x ~ caption_length + hashtags_count + reach + impressions + shares + saves',
     data=instagram_data_merged
 ).fit()
